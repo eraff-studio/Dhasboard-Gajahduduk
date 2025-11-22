@@ -8,10 +8,10 @@
 
 <h2>Dashboard Stok Barang Gajah Duduk</h2>
 
-<canvas id="grafikBar" width="400" height="200"></canvas>
+<canvas id="grafikBar" width="100" height="50"></canvas>
 
 <script>
-    fetch("data.csv")
+    fetch("Data.csv")
         .then(response => response.text())
         .then(csv => {
             const rows = csv.split("\n").slice(1);
