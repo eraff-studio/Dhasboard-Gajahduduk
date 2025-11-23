@@ -22,7 +22,7 @@
 fetch("Data.csv")
     .then(response => response.text())
     .then(text => {
-        const rows = text.trim().split("\n").map(r => r.split(","));
+        const rows = text.trim().split("\n").map(r => r.split(";"));
         
         let tableHTML = "";
 
