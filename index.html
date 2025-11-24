@@ -6,94 +6,70 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body style="font-family: Arial; padding: 20px;">
-  <h2>Tampilkan Grafik dari CSV</h2>  <script>
-  // Otomatis membaca file data.csv di GitHub Pages
-  fetch('data.csv')
-    .then(r => r.text())
-    .then(text => renderChart(text));
+  <h2>Grafik dari CSV (GitHub Pages)</h2><canvas id="myChart" width="600" height="350"></canvas>
 
-  function renderChart(text) {
-    const rows = text.split(/
+  <script>
+    // ==========================
+    // 1. Fungsi Fetch CSV dari GitHub
+    // ==========================
+    fetch('data.csv')
+      .then(response => {
+        if (!response.ok) throw new Error('CSV tidak ditemukan atau salah lokasi');
+        return response.text();
+      })
+      .then(csvText => parseCSV(csvText))
+      .catch(err => {
+        document.body.innerHTML += `<p style='color:red'>Error: ${err.message}</p>`;
+      });
+
+    // ==========================
+    // 2. Parsing CSV
+    // ==========================
+    function parseCSV(text) {
+      const rows = text.trim().split(/
 ?
 /).map(r => r.split(';'));
 
-    const headers = rows[0];
-    const columns = {};
-    headers.forEach((h, i) => {
-      columns[h] = rows.slice(1).map(r => Number(r[i]) || r[i]);
-    });
+      const headers = rows[0];
+      const dataRows = rows.slice(1);
 
-    const labels = Array.from({ length: rows.length - 1 }, (_, i) => `Data-${i+1}`);
-    const randomColor = () => `hsl(${Math.random() * 360}, 70%, 50%)`;
+      // Buat array kosong untuk tiap kolom
+      const columns = {};
+      headers.forEach((h, i) => {
+        columns[h] = dataRows.map(r => {
+          const val = r[i].trim();
+          return val === '' ? null : isNaN(val) ? val : Number(val);
+        });
+      });
 
-    const datasets = headers.map(h => ({
-      label: h,
-      data: columns[h],
-      borderColor: randomColor(),
-      fill: false,
-      tension: 0.3
-    }));
+      renderChart(headers, columns, dataRows.length);
+    }
 
-    new Chart(document.getElementById('myChart'), {
-      type: 'line',
-      data: { labels, datasets },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-  }
-</script>
-  <script>
-    document.getElementById('csvFile').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+    // ==========================
+    // 3. Render ChartJS
+    // ==========================
+    function renderChart(headers, columns, length) {
+      const labels = Array.from({ length }, (_, i) => `Data-${i + 1}`);
+      const randomColor = () => `hsl(${Math.random() * 360}, 70%, 50%)`;
 
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const text = event.target.result;
-    const rows = text.split(/\r?\n/).map(r => r.split(','));
+      const datasets = headers.map(h => ({
+        label: h,
+        data: columns[h],
+        borderColor: randomColor(),
+        backgroundColor: randomColor(),
+        fill: false,
+        tension: 0.2
+      }));
 
-    // Ambil header kolom
-    const headers = rows[0];
-
-    // Ambil data per kolom
-    const columns = {};
-    headers.forEach((h, i) => {
-      columns[h] = rows.slice(1).map(r => Number(r[i]) || r[i]);
-    });
-
-    // Label X memakai baris pertama
-    const labels = Array.from({ length: rows.length - 1 }, (_, i) => `Data-${i+1}`);
-
-    // Generate warna otomatis
-    const randomColor = () => `hsl(${Math.random() * 360}, 70%, 50%)`;
-
-    // Dataset untuk semua kolom numerik
-    const datasets = headers.map(h => ({
-      label: h,
-      data: columns[h],
-      borderColor: randomColor(),
-      fill: false,
-      tension: 0.3
-    }));
-
-    // Render Chart
-    new Chart(document.getElementById('myChart'), {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: datasets
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true }
+      new Chart(document.getElementById('myChart'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } }
         }
-      }
-    });
-  };
-
-  reader.readAsText(file);
-});
-
-  </script>
-</body>
+      });
+    }
+  </script></body>
 </html>
