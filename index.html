@@ -2,72 +2,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CSV Chart Viewer</title>
+  <title>Grafik Total Produk per Bulan</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body style="font-family: Arial; padding: 20px;">
-  <h2>Grafik dari CSV (GitHub Pages)</h2><canvas id="myChart" width="600" height="350"></canvas>
+  <h2>Grafik Total Produk di Masing‑masing Bulan</h2><canvas id="chart" style="width:100%; height:400px"></canvas>
 
   <script>
-    // ==========================
-    // 1. Fungsi Fetch CSV dari GitHub
-    // ==========================
+    // Fetch CSV dari GitHub Pages (file wajib bernama data.csv)
     fetch('data.csv')
-      .then(response => {
-        if (!response.ok) throw new Error('CSV tidak ditemukan atau salah lokasi');
-        return response.text();
-      })
-      .then(csvText => parseCSV(csvText))
-      .catch(err => {
-        document.body.innerHTML += `<p style='color:red'>Error: ${err.message}</p>`;
-      });
+      .then(r => r.text())
+      .then(csv => processCSV(csv))
+      .catch(err => alert('Gagal membaca CSV: ' + err));
 
-    // ==========================
-    // 2. Parsing CSV
-    // ==========================
-    function parseCSV(text) {
+    function processCSV(text) {
+      // Split baris
       const rows = text.trim().split(/
 ?
-/).map(r => r.split(';'));
+/);
 
-      const headers = rows[0];
-      const dataRows = rows.slice(1);
+      // Pisah kolom dengan ; (sesuai file Anda)
+      const data = rows.map(r => r.split(';'));
 
-      // Buat array kosong untuk tiap kolom
-      const columns = {};
-      headers.forEach((h, i) => {
-        columns[h] = dataRows.map(r => {
-          const val = r[i].trim();
-          return val === '' ? null : isNaN(val) ? val : Number(val);
-        });
-      });
+      // Index kolom bulan (berdasarkan file Anda: Jan=1, Feb=2, ... Dec=12)
+      const monthIndex = {
+        Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5,
+        Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12
+      };
 
-      renderChart(headers, columns, dataRows.length);
+      // Ambil header
+      const header = data[1];
+
+      // Dapatkan posisi real tiap bulan di CSV
+      const monthCols = {};
+      for (const m in monthIndex) {
+        monthCols[m] = header.indexOf(m);
+      }
+
+      // Hitung total per bulan
+      const totals = {
+        Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
+        Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0
+      };
+
+      // Loop baris data dari row 2 hingga akhir
+      for (let i = 2; i < data.length; i++) {
+        const row = data[i];
+
+        for (const m in totals) {
+          const col = monthCols[m];
+          if (col >= 0 && row[col] !== undefined) {
+            const val = parseFloat(row[col].replace(',', '.'));
+            if (!isNaN(val)) totals[m] += val;
+          }
+        }
+      }
+
+      drawChart(totals);
     }
 
-    // ==========================
-    // 3. Render ChartJS
-    // ==========================
-    function renderChart(headers, columns, length) {
-      const labels = Array.from({ length }, (_, i) => `Data-${i + 1}`);
-      const randomColor = () => `hsl(${Math.random() * 360}, 70%, 50%)`;
+    function drawChart(totals) {
+      const labels = Object.keys(totals);
+      const values = Object.values(totals);
 
-      const datasets = headers.map(h => ({
-        label: h,
-        data: columns[h],
-        borderColor: randomColor(),
-        backgroundColor: randomColor(),
-        fill: false,
-        tension: 0.2
-      }));
-
-      new Chart(document.getElementById('myChart'), {
-        type: 'line',
-        data: { labels, datasets },
+      new Chart(document.getElementById('chart'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Produk',
+            data: values,
+            backgroundColor: labels.map(() => `hsl(${Math.random()*360},70%,55%)`)
+          }]
+        },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          scales: { y: { beginAtZero: true } }
+          scales: {
+            y: { beginAtZero: true }
+          }
         }
       });
     }
