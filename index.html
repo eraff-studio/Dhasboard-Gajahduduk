@@ -21,7 +21,7 @@
 
             rows.forEach(row => {
                 if (row.trim() === "") return;
-                const cols = row.split(",");
+                const cols = row.split(";");
                 labels.push(cols[1]);
                 dataQty.push(parseInt(cols[2]));
             });
