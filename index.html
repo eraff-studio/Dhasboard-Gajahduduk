@@ -10,7 +10,7 @@
 
   <script>
     // Fetch CSV dari GitHub Pages (file wajib bernama data.csv)
-    fetch('data.csv')
+    fetch('Data.csv')
       .then(r => r.text())
       .then(csv => processCSV(csv))
       .catch(err => alert('Gagal membaca CSV: ' + err));
