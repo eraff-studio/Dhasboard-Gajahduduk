@@ -1,45 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Data Stock Barang 2024</title>
-    <style>
-        body { font-family: Arial; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        td, th {
-            border: 1px solid #ccc;
-            padding: 8px;
-        }
-        th { background: #f0f0f0; }
-    </style>
+    <title>Grafik Stok </title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<h2>Data dari Excel (CSV)</h2>
-<table id="csvTable"></table>
+<h2>Grafik Barang Stok Barang</h2>
+
+<canvas id="grafikBar" width="400" height="200"></canvas>
 
 <script>
-fetch("Data.csv")
-    .then(response => response.text())
-    .then(text => {
-        const rows = text.trim().split("\n").map(r => r.split(";"));
-        
-        let tableHTML = "";
+    fetch("data.csv")
+        .then(response => response.text())
+        .then(csv => {
+            const rows = csv.split("\n").slice(1);
 
-        rows.forEach((row, i) => {
-            tableHTML += "<tr>";
-            row.forEach(col => {
-                if (i === 0) {
-                    tableHTML += `<th>${col}</th>`;
-                } else {
-                    tableHTML += `<td>${col}</td>`;
+            let labels = [];
+            let dataQty = [];
+
+            rows.forEach(row => {
+                if (row.trim() === "") return;
+                const cols = row.split(",");
+                labels.push(cols[1]);
+                dataQty.push(parseInt(cols[2]));
+            });
+
+            const ctx = document.getElementById("grafikBar").getContext("2d");
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Qty",
+                        data: dataQty,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
                 }
             });
-            tableHTML += "</tr>";
         });
-
-        document.getElementById("csvTable").innerHTML = tableHTML;
-    });
 </script>
 
 </body>
