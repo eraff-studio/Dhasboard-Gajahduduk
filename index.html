@@ -1,50 +1,97 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
-    <title>Grafik Stok </title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSV Chart Viewer</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
-<body>
+<body style="font-family: Arial; padding: 20px;">
+  <h2>Tampilkan Grafik dari CSV</h2>  <script>
+  // Otomatis membaca file data.csv di GitHub Pages
+  fetch('data.csv')
+    .then(r => r.text())
+    .then(text => renderChart(text));
 
-<h2>Grafik Stok Barang</h2>
+  function renderChart(text) {
+    const rows = text.split(/
+?
+/).map(r => r.split(','));
 
-<canvas id="grafikBar" width="400" height="200"></canvas>
+    const headers = rows[0];
+    const columns = {};
+    headers.forEach((h, i) => {
+      columns[h] = rows.slice(1).map(r => Number(r[i]) || r[i]);
+    });
 
-<script>
-    fetch("data.csv")
-        .then(response => response.text())
-        .then(csv => {
-            const rows = csv.split("\n").slice(1);
+    const labels = Array.from({ length: rows.length - 1 }, (_, i) => `Data-${i+1}`);
+    const randomColor = () => `hsl(${Math.random() * 360}, 70%, 50%)`;
 
-            let labels = [];
-            let dataQty = [];
+    const datasets = headers.map(h => ({
+      label: h,
+      data: columns[h],
+      borderColor: randomColor(),
+      fill: false,
+      tension: 0.3
+    }));
 
-            rows.forEach(row => {
-                if (row.trim() === "") return;
-                const cols = row.split(";");
-                labels.push(cols[1]);
-                dataQty.push(parseInt(cols[2]));
-            });
+    new Chart(document.getElementById('myChart'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+  }
+</script>document.getElementById('csvFile').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-            const ctx = document.getElementById("grafikBar").getContext("2d");
-            new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Tampilan grafik stock barang keluar",
-                        data: dataQty,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        });
-</script>
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const text = event.target.result;
+    const rows = text.split(/\r?\n/).map(r => r.split(','));
 
+    // Ambil header kolom
+    const headers = rows[0];
+
+    // Ambil data per kolom
+    const columns = {};
+    headers.forEach((h, i) => {
+      columns[h] = rows.slice(1).map(r => Number(r[i]) || r[i]);
+    });
+
+    // Label X memakai baris pertama
+    const labels = Array.from({ length: rows.length - 1 }, (_, i) => `Data-${i+1}`);
+
+    // Generate warna otomatis
+    const randomColor = () => `hsl(${Math.random() * 360}, 70%, 50%)`;
+
+    // Dataset untuk semua kolom numerik
+    const datasets = headers.map(h => ({
+      label: h,
+      data: columns[h],
+      borderColor: randomColor(),
+      fill: false,
+      tension: 0.3
+    }));
+
+    // Render Chart
+    new Chart(document.getElementById('myChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  };
+
+  reader.readAsText(file);
+});
+
+  </script>
 </body>
 </html>
