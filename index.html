@@ -22,7 +22,7 @@
 /);
 
       // Split pakai ; atau , otomatis
-      const rows = lines.map(l => l.split(/;|,/));
+      const rows = lines.map(l => l.split(;));
 
       // Temukan row yang memuat nama bulan
       const monthRow = rows.find(r => r.some(c => c.trim() === 'Jan'));
