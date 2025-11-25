@@ -1,86 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grafik Total Produk</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <title>Grafik Barang Stok Barwng </title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body style="font-family: Arial; padding: 20px;">
-  <h2>Grafik Total Produk per Bulan 2</h2>
-  <canvas id="chart" style="width:100%; height:420px"></canvas>
+<body>
 
-  <script>
-    fetch('data.csv')
-      .then(r => r.text())
-      .then(text => parseCSV(text));
+<h2>Grafik Barang Stok Barang</h2>
 
-    function parseCSV(text) {
-      // Perbaikan: regex baris
-      const lines = text.trim().split(/\r?\n/);
+<canvas id="grafikBar" width="400" height="200"></canvas>
 
-      // Perbaikan: split otomatis koma atau titik koma
-      const rows = lines.map(l => l.split(/[;,]/));
+<script>
+    fetch("data.csv")
+        .then(response => response.text())
+        .then(csv => {
+            const rows = csv.split("\n").slice(1);
 
-      // Temukan baris header bulan
-      const monthRow = rows.find(r => r.some(c => c.trim() === 'Jan'));
-      if (!monthRow) {
-        alert('Tidak ditemukan header bulan JAN–DEC pada CSV');
-        return;
-      }
+            let labels = [];
+            let dataQty = [];
 
-      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            rows.forEach(row => {
+                if (row.trim() === "") return;
+                const cols = row.split(",");
+                labels.push(cols[1]);
+                dataQty.push(parseInt(cols[2]));
+            });
 
-      // Buat mapping kolom
-      const monthIndex = {};
-      monthNames.forEach(m => monthIndex[m] = monthRow.indexOf(m));
-
-      // Hitung total per bulan
-      const totals = {};
-      monthNames.forEach(m => totals[m] = 0);
-
-      const startRow = rows.indexOf(monthRow) + 1;
-
-      for (let r = startRow; r < rows.length; r++) {
-        const row = rows[r];
-
-        monthNames.forEach(m => {
-          const col = monthIndex[m];
-          if (col < 0 || !row[col]) return;
-
-          let val = row[col].replace(/,/g,'.').trim();
-          val = parseFloat(val);
-          if (!isNaN(val)) totals[m] += val;
+            const ctx = document.getElementById("grafikBar").getContext("2d");
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Qty",
+                        data: dataQty,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
         });
-      }
+</script>
 
-      drawChart(totals);
-    }
-
-    function drawChart(totals) {
-      const labels = Object.keys(totals);
-      const values = Object.values(totals);
-
-      new Chart(document.getElementById('chart'), {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Total Produk per Bulan',
-            data: values,
-            backgroundColor: labels.map(() =>
-              `hsl(${Math.random()*360},70%,55%)`
-            )
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
-    }
-  </script>
 </body>
 </html>
