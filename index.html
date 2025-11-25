@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<h2>Grafik Total Qty Berdasarkan Nama per Bulan 2024</h2>
+<h2>Grafik Total Qty per Nama per Bulan 1</h2>
 
 <canvas id="grafikBar" width="400" height="200"></canvas>
 
@@ -14,22 +14,25 @@
     fetch("data.csv")
         .then(response => response.text())
         .then(csv => {
-            const rows = csv.trim().split("\n").slice(1);
+            // CSV Anda pakai tanda PEMISAH ';'
+            const rows = csv.trim().split(/\r?\n/).slice(1);
 
             const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-            // Struktur: { NAMA: { Jan:0, Feb:0, ... } }
+            // Struktur data: { NAMA: { Jan:0, Feb:0, ... } }
             let dataMap = {};
 
             rows.forEach(row => {
                 if (row.trim() === "") return;
 
-                const cols = row.split(";");  
+                // split berdasarkan ;
+                const cols = row.split(";");
+
                 const tanggal = cols[1];
                 const nama = cols[3];
                 const qty = parseInt(cols[4]);
 
-                if (isNaN(qty)) return;
+                if (!tanggal || !nama || isNaN(qty)) return;
 
                 // Ambil bulan dari tanggal
                 const bulanIndex = new Date(tanggal).getMonth(); // 0–11
@@ -43,15 +46,13 @@
                 dataMap[nama][bulan] += qty;
             });
 
-            // Siapkan dataset untuk chart
-            const datasets = Object.keys(dataMap).map(nama => {
-                return {
-                    label: nama,
-                    data: monthNames.map(m => dataMap[nama][m]),
-                    borderWidth: 1,
-                    backgroundColor: `hsl(${Math.random()*360},70%,55%)`
-                };
-            });
+            // Buat dataset Chart.js
+            const datasets = Object.keys(dataMap).map(nama => ({
+                label: nama,
+                data: monthNames.map(m => dataMap[nama][m]),
+                borderWidth: 1,
+                backgroundColor: `hsl(${Math.random()*360},70%,55%)`
+            }));
 
             const ctx = document.getElementById("grafikBar").getContext("2d");
 
