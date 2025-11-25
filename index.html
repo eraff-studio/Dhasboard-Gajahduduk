@@ -1,58 +1,48 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grafik Total Produk </title>
+  <title>Grafik Total Produk</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body style="font-family: Arial; padding: 20px;">
-  <h2>Grafik Total Produk per Bulan 1 </h2><canvas id="chart" style="width:100%; height:420px"></canvas>
+  <h2>Grafik Total Produk per Bulan</h2>
+  <canvas id="chart" style="width:100%; height:420px"></canvas>
 
   <script>
-    // =============================
-    // 1. BACA FILE CSV TANPA STRUKTUR
-    // =============================
     fetch('data.csv')
       .then(r => r.text())
       .then(text => parseCSV(text));
 
     function parseCSV(text) {
-      const lines = text.trim().split(/
-?
-/);
+      // Perbaikan: regex baris
+      const lines = text.trim().split(/\r?\n/);
 
-      // Split pakai ; atau , otomatis
-      const rows = lines.map(l => l.split(;));
+      // Perbaikan: split otomatis koma atau titik koma
+      const rows = lines.map(l => l.split(/[;,]/));
 
-      // Temukan row yang memuat nama bulan
+      // Temukan baris header bulan
       const monthRow = rows.find(r => r.some(c => c.trim() === 'Jan'));
       if (!monthRow) {
         alert('Tidak ditemukan header bulan JAN–DEC pada CSV');
         return;
       }
 
-      // Ambil index bulan
       const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+      // Buat mapping kolom
       const monthIndex = {};
+      monthNames.forEach(m => monthIndex[m] = monthRow.indexOf(m));
 
-      monthNames.forEach(m => {
-        monthIndex[m] = monthRow.indexOf(m);
-      });
+      // Hitung total per bulan
+      const totals = {};
+      monthNames.forEach(m => totals[m] = 0);
 
-      // =============================
-      // 2. HITUNG TOTAL PER BULAN MESKI CSV BERANTAKAN
-      // =============================
-      const totals = {
-        Jan:0, Feb:0, Mar:0, Apr:0, May:0, Jun:0,
-        Jul:0, Aug:0, Sep:0, Oct:0, Nov:0, Dec:0
-      };
-
-      // Mulai dari baris setelah header bulan
       const startRow = rows.indexOf(monthRow) + 1;
 
       for (let r = startRow; r < rows.length; r++) {
         const row = rows[r];
-        if (!row || row.length === 0) continue;
 
         monthNames.forEach(m => {
           const col = monthIndex[m];
@@ -67,9 +57,6 @@
       drawChart(totals);
     }
 
-    // =============================
-    // 3. TAMPILKAN GRAFIK
-    // =============================
     function drawChart(totals) {
       const labels = Object.keys(totals);
       const values = Object.values(totals);
@@ -81,7 +68,9 @@
           datasets: [{
             label: 'Total Produk per Bulan',
             data: values,
-            backgroundColor: labels.map(() => `hsl(${Math.random()*360},70%,55%)`)
+            backgroundColor: labels.map(() =>
+              `hsl(${Math.random()*360},70%,55%)`
+            )
           }]
         },
         options: {
@@ -92,5 +81,6 @@
         }
       });
     }
-  </script></body>
+  </script>
+</body>
 </html>
