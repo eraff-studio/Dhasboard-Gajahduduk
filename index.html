@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<h2>Grafik Total Qty Berdasarkan Nama per Bulan</h2>
+<h2>Grafik Total Qty Berdasarkan Nama per Bulan 2024</h2>
 
 <canvas id="grafikBar" width="400" height="200"></canvas>
 
@@ -24,7 +24,7 @@
             rows.forEach(row => {
                 if (row.trim() === "") return;
 
-                const cols = row.split(",");  
+                const cols = row.split(";");  
                 const tanggal = cols[1];
                 const nama = cols[3];
                 const qty = parseInt(cols[4]);
